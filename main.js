@@ -1,47 +1,76 @@
 import { create_element } from "./elements.js";
+
+// global vars
 let database = {};
 let current_article_id = undefined;
 
-const nav = document.querySelector('nav')
+
+// querying html elements
 const article = document.querySelector('article');
 const title = article.querySelector('h1.title');
 const content = article.querySelector('.content');
 
-
-
-
-
-
-
 /** main global stuff */
+handle_hash_changes();
 const sidebar = create_sidebar();
 sidebar.render();
-make_listeneable();
+
+
+const editor = () => {
+    return {
+        /** make elements in the editor clickable to edit */
+        clickable: () => {
+
+            const allowed_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+            article.addEventListener('click', (event) => {
+                if (allowed_tags.includes(event.target.tagName.toLowerCase())) {
+                    event.target.setAttribute('contenteditable', 'true');
+                }
+            })
+        },
+        listen: () => { },
+    }
+};
+editor.clickable();
+editor.listen();
 
 
 
 
 
 
-// window hash change events
-window.addEventListener('hashchange', () => 
-{
-    const hash = window.location.hash;
-    current_article_id = hash.replace('#', '');
-    render_article_display();
-});
+function handle_editor_input() {
+    article.addEventListener('input', (event) => {
+        const content = article.innerHTML;
+        console.log(content)
+    })
+}
 
 
 
 
 
+
+
+
+
+
+
+function handle_hash_changes() {
+    window.addEventListener('hashchange', () => {
+        const hash = window.location.hash;
+        current_article_id = hash.replace('#', '');
+        render_article_display();
+    });
+}
 
 function create_sidebar()
 {
     /** main variables */
     const button = document.querySelector('button.toggle');
     const sidebar = document.querySelector('aside');
-    const list = sidebar.querySelector('ul')
+    const list = sidebar.querySelector('ul');
+    const nav = sidebar.querySelector('nav');
 
 
     /** handle toggle logic  */
@@ -55,6 +84,7 @@ function create_sidebar()
             }
         });
     }
+
     /** hide/show sidebar */
     function toggle()
     {
@@ -66,9 +96,15 @@ function create_sidebar()
     }
 
     /** render list with links from database */
-    function refresh() {
+    function refresh() 
+    {
+        /** clear ht list so that this function can be called again to update */
+        list.innerHTML = '';    
+
+        /** loop over the database */
         database.forEach((entry) => {
     
+            /** create list items & anchors */
             const li = document.createElement('li');
             const anchor = document.createElement('a');
             anchor.href = '#' + entry['id'];
@@ -86,12 +122,15 @@ function create_sidebar()
 
 
 
-
 // commands
 const commands = [
     {
-        title: "Help",
-        description: "Open this editor's readme file"
+        title: "Search files",
+        description: "Search & open files"
+    },
+    {
+        title: "Create new file",
+        description: "Create new file"
     },
     {
         title: "Import database",
@@ -101,23 +140,14 @@ const commands = [
     {
         title: "Export database",
         description: 'Export a JSON database file',
-        action: () => { }
+        action: () => { export_json_database_file(); }
     },
     {
-        title: 'Edit database',
+        title: 'Database matrix',
         description: 'Open an editable database view',
         action: () => { }
     },
-    {
-        title: 'Sync site CSS',
-        description: 'Sync the CSS of a remote site URL',
-        action: () => {}
-    },
-    {
-        title: 'Open settings',
-        description: 'Open settings',
-        action: () => { }
-    }
+
 ];
 
 
@@ -262,10 +292,26 @@ function handle_modal_input_events() {
     }
 }
 
+/** export the current database as a json file */
+function export_json_database_file() {
+
+        const output_file_name = 'database.json';
+        const parsed_json = JSON.stringify(database);
+        const blob = new Blob([parsed_json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        a.href = url;
+        a.download = output_file_name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+}
 
 /** call this function to programatically click a hidden file input & import a file  */
 function import_handler() {
     
+    // creating an input with elements.js 
     const input = create_element({
         tag: 'input', 
         attr: 
@@ -308,37 +354,35 @@ function import_handler() {
 
 function reset_window_hash()
 {
-    // reset the hash on every visit
     if (window.location.hash) {
         history.replaceState(null, '', window.location.pathname);
     }
 }
+
+/** what should happen when the database is loaded */
 function database_read_event(e) {
+
+    /** set the global variable */
     database = JSON.parse(e.target.result);
+
+    /** refresh the sidebar & reset the window URL */
     sidebar.refresh();
     reset_window_hash();
-    render_article_display();
 }
 
+/** renders the content in the article */
 function render_article_display()
 {
     
+    /** find the article from the database, by finding the 'id' */
     const article = database.find((article) => article['id'] === current_article_id);
+    
+    /** load the article title, content to html */
     title.innerText = article['title'] === '' ? article['id'] : article['title'];
-    nav.innerText = article['id'];
     content.innerHTML = article['content'];
 
 }
 
-function make_listeneable()
-{
-    const allowed_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
-    article.addEventListener('click', (event) => {
-        if (allowed_tags.includes(event.target.tagName.toLowerCase()))
-        {
-            event.target.setAttribute('contenteditable', 'true');
-        }
-    })
-}
 
+// toggle the modal on  program start
 modal_toggle();
