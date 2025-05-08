@@ -1,0 +1,12 @@
+{
+  "name": "html-live-editor",
+  "version": "1.0.0",
+  "description": "personal editor for my site",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "live-server"
+  },
+  "author": "",
+  "license": "ISC"
+}

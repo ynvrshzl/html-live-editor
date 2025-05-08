@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1oYW1tZXItaWNvbiBsdWNpZGUtaGFtbWVyIj48cGF0aCBkPSJtMTUgMTItOC4zNzMgOC4zNzNhMSAxIDAgMSAxLTMtM0wxMiA5Ii8+PHBhdGggZD0ibTE4IDE1IDQtNCIvPjxwYXRoIGQ9Im0yMS41IDExLjUtMS45MTQtMS45MTRBMiAyIDAgMCAxIDE5IDguMTcyVjdsLTIuMjYtMi4yNmE2IDYgMCAwIDAtNC4yMDItMS43NTZMOSAyLjk2bC45Mi44MkE2LjE4IDYuMTggMCAwIDEgMTIgOC40VjEwbDIgMmgxLjE3MmEyIDIgMCAwIDEgMS40MTQuNTg2TDE4LjUgMTQuNSIvPjwvc3ZnPg==" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Live editor</title>
+    <script type="module" src="main.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ynvrshzl/css-snippets/main.css">
+</head>
+<body>
+    <!-- main container -->
+    <main>
+        
+        <!-- sidebar -->
+        <section>
+            <!-- toggle button -->
+            <button type="submit" class="toggle"></button>
+
+            <!-- actual sidebar -->
+            <aside class="is-hidden">
+                <ul class="link-tree"></ul>
+            </aside>
+
+        </section>
+
+        <!-- editor section -->
+        <section>
+            
+            <!-- contains information about the article -->
+            <nav></nav>
+            
+            <!-- actual content loads here -->
+            <article>
+                
+                <!-- contains opening article content -->
+                <header>
+                    <!-- title -->
+                    <h1 class="title"></h1>
+                    
+                    <!-- properties -->
+                    <table class="properties">
+                        <tbody></tbody>
+                    </table>
+
+                </header>
+
+                <!-- content key loads here -->
+                <section class="content"></section>
+            </article>
+        </section>
+    </main>
+</body>
+</html>
