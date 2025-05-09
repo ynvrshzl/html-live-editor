@@ -1,7 +1,7 @@
 :root {
     --article-padding: 75px;
     --modal-width: 600px;
-    --color-accent: rgb(113, 248, 248);
+    --color-accent: rgb(245, 183, 243);
     /* --article-width: 400px; */
 }
 
@@ -90,7 +90,8 @@ img {
 }
 
 /* stylize a pseudo backdrop */
-body:has(.modal)::before {
+body:has(.modal)::before 
+{
     content: "";
     display: block;
     width: 100%;
@@ -98,8 +99,11 @@ body:has(.modal)::before {
     position: absolute;
     top: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    
 }
+
+
 
 input {
     background: transparent;
@@ -112,8 +116,8 @@ input {
 }
 
 div.modal {
-    padding: 25px;
     border-radius: 25px;
+    padding: 25px;
     display: flex;
     flex-direction: column;
 
@@ -129,6 +133,82 @@ div.modal {
     transform: translate(-50%, -50%);
 }
 
+
+
+
+table {
+    /* table-layout: fixed; */
+    width: 100%;
+    border-spacing: 0px;
+}
+td:has(.tag) {
+
+    /* max-width: 200px;
+    overflow-x: auto; */
+    word-break: break-all;
+    white-space: nowrap;
+}
+td::-webkit-scrollbar {
+    height: 5px;
+}
+
+.tag
+{
+    background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    padding: 3px;
+    padding-inline: 10px;
+    border-radius: 25px;
+    text-transform: lowercase;
+    margin: 1px;
+    font-size: 0.8em;
+}
+.tag::after {
+    display: none;
+}
+
+.tag:hover {
+    text-decoration: none;
+    background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+div.modal:has(table) table tr:nth-child(2n+1)
+{
+    background-color: color-mix(in srgb, var(--color-background-alt) 25%, transparent);
+}
+/* div modal with table */
+div.modal:has(table) 
+{
+    --modal-width: 75%;
+    max-height: 400px;
+    overflow-y: unset;
+}
+div.modal:has(table) table
+{
+    display: block;
+    overflow-y: auto;
+}
+div.modal td, 
+div.modal th
+{
+    font-size: 0.7em;
+    font-weight: normal;
+}
+
+div.modal th
+{
+    cursor: pointer;
+}
+
+div.modal thead
+{
+    text-align: left;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-background);
+}
+div.modal:has(table)  input[type='text']
+{
+    margin-bottom: 25px;
+}
 
 
 input,
@@ -221,7 +301,7 @@ aside ul {
 }
 
 aside {
-    font-size: 0.75em;
+    font-size: 0.6em;
     text-transform: capitalize;
 
     max-height: 100%;
@@ -315,3 +395,4 @@ aside > nav
     left: 0;
     z-index: 1;
 }
+
