@@ -1,13 +1,13 @@
 // this will be available on my github in the near future
 // for now this is a prototype
 
+/** Utility function for quickly creating html elements */
 export function create_element(data = {}) 
 {
 
     // setup static variables
     const tag = data["tag"];
     const el = document.createElement(tag);
-
 
 
     /** handle custom attributes here */

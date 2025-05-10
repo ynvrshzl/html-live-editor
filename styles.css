@@ -1,7 +1,8 @@
 :root {
     --article-padding: 75px;
     --modal-width: 600px;
-    --color-accent: rgb(245, 183, 243);
+    --color-accent: rgb(237, 172, 235);
+    --color-text: white;
     /* --article-width: 400px; */
 }
 
@@ -35,17 +36,6 @@ article {
     margin-right: auto;
     max-height: 100%;
     overflow-y: auto;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: #ffffff22;
-    border-radius: 5px;
-}
-
-::-webkit-scrollbar {
-    border-radius: 5px;
-    width: 10px;
-    background: #00000022
 }
 
 body {
@@ -329,7 +319,7 @@ aside {
 
 article  *:hover
 {
-    outline: 2px solid var(--color-accent-muted);
+    outline: 2px solid var(--color-accent);
     /* outline-offset: 3px; */
 }
 
