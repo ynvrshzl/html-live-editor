@@ -1,3 +1,4 @@
+/** dependencies */
 import { create_element } from "./elements.js";
 
 /** initialise program here */
@@ -5,7 +6,7 @@ function main() {
     global.listeners.init();
     editor.init();
     sidebar.init();
-    global.commands['open-global-modal'].command()
+    // global.commands['open-global-modal'].command()
 }
 
 /** store core program states */
@@ -25,64 +26,129 @@ const states = {
     },
 };
 
-/** modal class to handle custom modals */
+/** create custom user prompts */
+const prompt = {
+
+    /** prompt user for input. if cancelled or incorrect, throws a safe error */
+    input: (params = {}) => {
+
+        // store input
+        let input;
+
+        // * block execution until the prompt is complete
+        while (true) {
+
+            // store the prompt result in input var
+            input = window.prompt(params['placeholder']);
+
+            // * if input is cancelled
+            if (input === null) {
+                throw new Error("User canceled input. Cannot proceed without an ID.");
+            }
+
+            // * if input is not empty
+            if (input.trim() !== "") {
+                return input.trim(); // Valid input returned
+            }
+
+            // * show user of incorrect alrt
+            alert("Invalid input! Please enter a valid file ID.");
+        }
+    }
+
+}
+
+/** modal class to handle custom modals with commands */
 const modal = {
     
     /** this is used for loading context-specific commands e.g. editor, elements, settings, text, etc. */
     commands: undefined,
 
-    /** must be an array of objects */
-    load: (commands_to_load = [{}]) => {
-        modal.commands = commands_to_load;
+    /** initializing the modal here. */
+    init: () => {
+
+        modal.create();
+        modal.parse();
+        modal.listen();
+    
     },
 
+    /** dynamically create the html */
     create: () => {
-        const modal_container = create_element({
+
+        const container = create_element({
                 tag: 'div',
                 classes: ['modal'],
                 addtobody: 1,
                 getref: 1
             });
 
-            const input = create_element({
-                tag: 'input',
-                getref: 1,
-                attr: { type: 'text', placeholder: 'Search command' },
-                focus: true,
-                insertin: modal_container,
-            });
+        const input = create_element({
+            tag: 'input',
+            getref: 1,
+            attr: { type: 'text', placeholder: 'Search command' },
+            focus: true,
+            insertin: container,
+        });
 
-            const body = create_element({
-                tag: 'div',
-                getref: 1,
-                classes: ['modal-results'],
-                insertin: modal_container,
-            });
+        const body = create_element({
+            tag: 'div',
+            getref: 1,
+            classes: ['modal-results'],
+            insertin: container,
+        });
 
-            // generate command list based on the commands passed to the modal
-            Object.entries(modal['commands']).forEach((object) => {
+    },
+
+    /** load commands into the modal. must be an array, and each command must be an object with values like this: "id": { keys: values, keys: values, }
+     */
+    load: (commands_to_load = []) => {
+
+        /** loads the commands into the modal */
+        modal.commands = commands_to_load;
+    },
+    /** genreate the list of commands inside the modal */
+    parse: () => {
+        // query the body of the modal
+        const body = document.querySelector('.modal .modal-results');
+
+        // generate command list based on the commands passed to the modal
+        Object.entries(modal['commands']).forEach((object) => {
+
+            // since the commands struct is an object with values, we have to slice it's first key here (whcih is the command id) */
+            const [command] = object.slice(1)
+
+            // create buttons for each command
+            const button = create_element({
+
+                tag: 'button',
+                text: command['title'],
+                classes: ['command'],
+                insertin: body,
+                attr: { type: 'submit', },
+
+                // the command that will run when the button is clicked
+                onclick: () => { 
+
+                    // set a 0ms timeout so we can chain commands together (if needed)
+                    setTimeout(() => { 
+                        
+                        // run the command() 
+                        command.command() 
+
+                    }, 0); 
+                },   
                 
-                /** since the commands struct is an object with values, we have to slice it's first key here (the command id) */
-                const [command] = object.slice(1)
-
-                // create buttons for each command
-                const button = create_element({
-                    tag: 'button',
-                    text: command['title'],
-                    classes: ['command'],
-                    insertin: body,
-                    attr: {type: 'submit',},
-                    onclick: () => { command.command()},
-                    getref: 1,
-                });
-                // create description for command
-                create_element({
-                    tag: 'p',
-                    text: command['description'],
-                    insertin: button
-                })
+                getref: 1,
+            
             });
-
+            // create description for command
+            create_element({
+                tag: 'p',
+                text: command['description'],
+                insertin: button
+            })
+        });
     },
     listen: () => {
         // query the altready created commands
@@ -136,7 +202,6 @@ const modal = {
             if (event.key === 'Enter') {
 
                 const command = Array.from(document.querySelectorAll(".command")).filter(el => getComputedStyle(el).display !== "none");
-                console.log(command)
                 command[0].click();
 
             }
@@ -145,15 +210,12 @@ const modal = {
             }
         }
     },
-    unlisten: () => {
-
-    },
     toggle: () => {
+
         // if it doesn't already exist
         if (!(document.body.querySelector('.modal'))) {
 
-            modal.create();
-            modal.listen();
+            modal.init();
 
         // if exists
         } else {
@@ -189,11 +251,25 @@ const sidebar = {
     /** commands to be accessible from outside */
     commands: {
         
+        /** reveal any link in the sidebar */
+        link: (id) => {
+
+            const cssclass = 'active-link'
+
+            // * query the anchor link with the specific link
+            const anchor = sidebar.elements.list.querySelector(`a[href="#${id}"]`);
+            
+            // refresh & update classes
+            document.querySelectorAll(`a.${cssclass}`).forEach((a) => { a.classList.remove(cssclass) })
+            
+            anchor.classList.add(cssclass);
+
+            anchor.scrollIntoView({ behavior: "smooth", block: "center" });
+        },
         refresh: () =>
         { 
             sidebar.elements.list.innerHTML = '';
             states.database.json.forEach((article) => {
-                console.log(article);
                 const li = create_element({
                     tag: 'li',
                     getref: 1,
@@ -219,14 +295,25 @@ const sidebar = {
     }
 }
 
+const file = {
+    
+    default: {
+
+        "id": null,
+        "title": null,
+        "content": "<p contenteditable=\"true\"></p>"
+    
+    }
+}
+
 /** handles editor */
 const editor = {
 
     /** initializing editor */
     init: () => { 
 
-        editor.methods.clickable_elements(); 
-        editor.methods.add_new_element_helper_button();
+        editor.methods.welcome();
+        editor.methods.clicktoedit(); 
 
     },
 
@@ -241,10 +328,92 @@ const editor = {
     /** internal methods */
     methods: {
 
+        /** simply removes the innerHTML of an element */
+        refresh: {
+            properties: () => {
+                editor.elements.properties.innerHTML = '';
+            },
+            content: () => {
+                editor.elements.content.innerHTML = '';
+            },
+            title: () => {
+                editor.elements.title.innerHTML = '';
+            }
+        },
+
+        file: {
+
+            /** creates a new file & adds to the database */
+            create: () => {
+
+                try {
+
+                    /** create a new file object */
+                    const f = new Object(file.default);
+
+                    /** use a prompt to get user input */
+                    const input = prompt.input({placeholder: "Please enter a valid file ID:"});
+
+                    /** set the input to the new file id & title */
+                    f['id']          = input;
+                    f['title']       = input;
+
+                    // trigger a hash change
+                    location.hash = f.id
+
+                    // push to database
+                    const database = states.database.json;
+                    database.push(f) 
+
+                    // events that happen after file is created
+                    sidebar.commands.refresh();
+                    editor.elements.title.setAttribute('contenteditable', 'true')
+                    editor.elements.title.focus();
+
+                } catch (err) {
+
+                    console.error(err.message);
+
+                }
+
+            },
+
+        },
+        /** temporary welcome page */
+        welcome: () => {
+
+            const button = create_element({
+                tag: 'button',
+                onclick: () => { button.remove(); editor.methods.import(); },
+                attr: {type: 'button'},
+                text: 'Import database',
+                getref: 1,
+                insertin: editor.elements.content,
+            })
+        },
         /** update the article html with the parameter data */
-        refresh: (params = {}) => {
+        render: (params = {}) => {
+            
+            /** load the article title & content into the html */
             editor.elements.title.textContent = params['title']
             editor.elements.content.innerHTML = params['content']
+            
+            /** remove any past tags */
+            editor.methods.refresh.properties();
+
+            // parse tags as clickable links
+            params['tags'].forEach((tag) => {
+
+                create_element({
+                    tag: 'a',
+                    text: tag,
+                    classes: 'tag',
+                    attr: {href: '#' + tag},
+                    insertin: editor.elements.properties
+                });
+
+            })
+
         },
 
         /**  returns the article object match from the database  */
@@ -255,10 +424,10 @@ const editor = {
         },
 
         /** make elements in the editor clickable to edit */
-        clickable_elements: () => {
+        clicktoedit: () => {
 
             /** only these tags will be editable */
-            const allowed_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+            const allowed_tags = ['li', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
 
             /** listen for the mouse click to make the elements editable */
             editor.elements.article.addEventListener('click', (event) => {
@@ -327,6 +496,9 @@ const editor = {
             states.database.file_name = params['filename'];
             sidebar.commands.refresh();
             sidebar.commands.open();
+            editor.methods.listen();
+            editor.methods.add_new_element_helper_button();
+
         },
 
         /** export the current database as a json file */
@@ -346,8 +518,33 @@ const editor = {
             document.body.removeChild(a);
         },
 
+        /** handles input listening inside the editor */
+        listen: () => {
+            // refresh any pre-existing listeners
+            editor.elements.article.removeEventListener('input', editor.methods.write)
+            editor.elements.article.addEventListener('input', editor.methods.write)
+        },
+        
+        write: () => {
+
+            // static variables for verbosity
+            const title = editor.elements.title.textContent;
+            const content = editor.elements.content.innerHTML;
+            const article = editor.methods.query({ type: 'id', term: states.database.id })
+
+            
+            // * write the html content to the article
+            article['content'] = content;
+            article['title'] = title;
+            
+            // log
+            console.log({ title: title, content: content, id: article, });
+
+        },
+
         /** adds a helper button for quickly adding elements */
         add_new_element_helper_button: () => {
+            
             /** create if it doesn't exist */
             if (!(editor.elements.article.querySelector('button.element-adder-helper'))) {
 
@@ -368,25 +565,76 @@ const editor = {
     /** core commands */
     commands: {
 
+        /** adds a property to the current file */
+        "add-property":
+        {
+            title: "Add property",
+            description: "Add a property to this file",
+            command: () => { 
 
+                // static variables for property & value
+                const property = prompt.input({ placeholder: "Enter property name" });
+                const value = prompt.input({ placeholder: "Enter property value" });
+                
+                // get the article from the database
+                const article = editor.methods.query({ type: 'id', term: states.database.id });
+                
+                // set the new property & value
+                article['property'] = value;
+                 
+             }
+        },
         "editor:add-paragraph":
         {
-            title: "Add paragraph",
+            title: "Paragraph",
             description: "Add a paragarph",
-            command: () => {  }
+            command: () => { 
+                
+                create_element({
+                    tag: 'p',
+                    insertin: editor.elements.content,
+                    attr: {'contenteditable': 'true'},
+                    focus: 1,
+                });
+                
+            }
         },
+        "editor:add-table":
+        {
+            title: "Table",
+            description: "Add a table",
+            command: () => { }
+        },        
+        "editor:add-heading-1":
+        {
+            title: "H1",
+            description: "Add a heading level 1",
+            command: () => { }
+        }, 
+        "editor:add-heading-2":
+        {
+            title: "H2",
+            description: "Add a heading level 2",
+            command: () => { }
+        },         
+        "editor:add-heading-3":
+        {
+            title: "H3",
+            description: "Add a heading level 3",
+            command: () => { }
+        },      
         "editor:add-link":
         {
-            title: "Add link",
+            title: "Link",
             description: "Insert a link at cursor",
             command: () => { }
         },        
         "editor:add-image":
         {
-            title: "Add image",
+            title: "Image",
             description: "Add a image",
             command: () => {  }
-        }
+        },
 
     }
 }
@@ -396,6 +644,17 @@ const global = {
 
     /** setup non context-specific commands for the program */
     commands: {
+        "search-files":
+        {
+            title: "Search files",
+            description: "Search between files",
+            command: () => { }
+        },
+        "create-new-file": {
+            title: "Create new file",
+            description: "Create new file",
+            command: () => {editor.methods.file.create(); }
+        },
         "open-editor-modal":
         {
             title: "Open editor modal",
@@ -407,6 +666,11 @@ const global = {
             title: "Open global modal",
             description: "Opens the global modal",
             command: () => { modal.load(global.commands); modal.toggle(); }
+        },
+        "open-database-matrix": {
+            title: "Open database matrix",
+            description: "Opens all your files as a database",
+            command: () => {},
         },
         "toggle-sidebar":
         {
@@ -438,23 +702,29 @@ const global = {
 
         /** handle wndow hash change */
         windowhashchange: () => {
+
             // actual event
             window.addEventListener('hashchange', () => {
 
-                // store hash in the global states
+                // global state: store hash 
                 states.window.hash = location.hash;
 
-                // set current article to the hash
+                // set current article id to the hash
                 states.database.id = states.window.hash.slice(1);
 
                 /** query the article from the database to return it's data */
+                /** we do this to return the article data from the database */
                 const article = editor.methods.query({type: 'id', term: states.database.id})
+
+                sidebar.commands.link(states.database.id);
 
                 /** catch incorrect links or hash urls that don't point to existing articles */
                 if (article) 
                 {
-                    /** refresh editor */
-                    editor.methods.refresh({title: article['title'], content: article['content']})
+                    const title_or_id = article['title'] ? article['title'] : article['id'];
+                    
+                    /** refresh editor by passing in the database article data */
+                    editor.methods.render({ title: title_or_id, content: article['content'], tags: article['tags']})
                 
                 } else {
 
@@ -478,9 +748,13 @@ const global = {
                             global.commands['import-database'].command();
                             break;
 
-                        case 'x':
+                        case 'e':
                             event.preventDefault();
                             global.commands['export-database'].command();
+                            break;
+                        case 'o':
+                            event.preventDefault();
+                            global.commands['open-file'].command();
                             break;
 
                         case 'p':

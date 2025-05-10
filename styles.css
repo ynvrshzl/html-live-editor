@@ -1,7 +1,7 @@
 :root {
     --article-padding: 75px;
-    --modal-width: 600px;
-    --color-accent: rgb(237, 172, 235);
+    --modal-width: 650px;
+    --color-accent: rgb(255, 86, 128);
     --color-text: white;
     /* --article-width: 400px; */
 }
@@ -28,7 +28,7 @@ main {
 }
 
 article {
-    font-size: 0.8em;
+    font-size: 0.75em;
     padding: var(--article-padding);
     width: var(--article-width);
 
@@ -74,10 +74,21 @@ img {
 
 
 
-.properties {
+table.properties {
     font-size: 0.8em;
-    opacity: 0.5;
+    /* opacity: 0.5; */
+    margin: 20px 0px;
+    margin-bottom: 50px;
 }
+table.properties
+{
+    width: fit-content;
+}
+table.properties > tbody > tr > td:first-child
+{
+    opacity: 0.3;
+}
+
 
 /* stylize a pseudo backdrop */
 body:has(.modal)::before 
@@ -115,12 +126,20 @@ div.modal {
     width: var(--modal-width);
     background: var(--color-background);
     /* height: 200px; */
-    max-height: 200px;
-    overflow-y: auto;
+    /* max-height: 200px; */
+    /* overflow-y: auto; */
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+.modal-results
+{
+    padding: 5px;
+    font-size: 0.8em;
+    max-height: 100px;
+    overflow-y: auto;
 }
 
 
@@ -287,10 +306,26 @@ aside a {
 aside ul {
     list-style: decimal;
     list-style: none;
-    /* padding: 0px; */
+    padding: 0px;
 }
 
+
+aside a:not(.active-link)
+{
+    opacity: 0.3;    
+}
+
+
+
+
+.is-hidden {
+    display: none;
+}
+
+
 aside {
+    padding: 25px;
+    /* line-height: 2; */
     font-size: 0.6em;
     text-transform: capitalize;
 
@@ -311,9 +346,7 @@ aside {
     flex-direction: column; */
 }
 
-.is-hidden {
-    display: none;
-}
+
 
 
 
@@ -386,3 +419,29 @@ aside > nav
     z-index: 1;
 }
 
+.title
+{
+    margin: 0;
+}
+
+
+
+
+
+
+/* .title
+{
+    position: relative;
+}
+
+
+.title::before {
+    content: "Title";
+    position: absolute; 
+    top: -15px;
+    opacity: 0.3;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0;
+    padding: 0;
+} */
