@@ -3,10 +3,11 @@ import { create_element } from "./elements.js";
 
 /** initialise program here */
 function main() {
+    global.methods.removehash();
     global.listeners.init();
     editor.init();
     sidebar.init();
-    // global.commands['open-global-modal'].command()
+    global.commands['open-global-modal'].command()
 }
 
 /** store core program states */
@@ -15,8 +16,10 @@ const states = {
     database: {
         /** the database file name */
         file_name: null,
-        /** stores the current article id */
+        /** stores a target article id */
         id: null,
+        /** stores a target article object */
+        article: null, 
         /** actual json text */
         json: null,
     },
@@ -100,12 +103,11 @@ const modal = {
 
     },
 
-    /** load commands into the modal. must be an array, and each command must be an object with values like this: "id": { keys: values, keys: values, }
-     */
-    load: (commands_to_load = []) => {
+    /** load commands into the modal. must be an array, and each command must be an object with values like this: "id": { keys: values, keys: values, ... } */
+    load: (commands = []) => {
 
         /** loads the commands into the modal */
-        modal.commands = commands_to_load;
+        modal.commands = commands;
     },
     /** genreate the list of commands inside the modal */
     parse: () => {
@@ -391,28 +393,44 @@ const editor = {
                 insertin: editor.elements.content,
             })
         },
-        /** update the article html with the parameter data */
-        render: (params = {}) => {
-            
-            /** load the article title & content into the html */
+
+        /** load the article title & content into the html */
+        read: (params = {}) => {
+
             editor.elements.title.textContent = params['title']
             editor.elements.content.innerHTML = params['content']
-            
-            /** remove any past tags */
+
+        },
+        /** update the article html with the parameter data */
+        render: (params = {}) => {
+
+            editor.methods.read(params)          
             editor.methods.refresh.properties();
+            
+            // handle tags
+            if (params['tags'] !== null && params['tags'].length > 0) 
+            {
 
-            // parse tags as clickable links
-            params['tags'].forEach((tag) => {
+                // parse tags as clickable links
+                params['tags'].forEach((tag) => {
+    
+                    // create link
+                    create_element({
+                        tag: 'a',
+                        text: tag,
+                        classes: 'tag',
+                        attr: {href: '#' + tag},
+                        insertin: editor.elements.properties
+                    });
+    
+                })
 
-                create_element({
-                    tag: 'a',
-                    text: tag,
-                    classes: 'tag',
-                    attr: {href: '#' + tag},
-                    insertin: editor.elements.properties
-                });
+            } else {
 
-            })
+                editor.elements.properties.innerHTML = 'No properties'
+            
+            }
+
 
         },
 
@@ -484,21 +502,31 @@ const editor = {
 
                 // in this stage, the file is open & loaded
                 reader.onload = (event) => {
-                    editor.methods.load({ filename: file.name, result: event.target.result });
+                    
+                    global.events.editorimport(event);
+
                 };
 
             }
         },
 
-        /** what should happen when the database is loaded */
-        load: (params = {}) => {
-            states.database.json = JSON.parse(params['result']);
-            states.database.file_name = params['filename'];
-            sidebar.commands.refresh();
-            sidebar.commands.open();
-            editor.methods.listen();
-            editor.methods.add_new_element_helper_button();
+        loadarticle: () => {
+            /** store state as variable */
+            const article = states.database.article;
 
+            /** catch incorrect links or hash urls that don't point to existing articles */
+            if (article) {
+                
+                const title_or_id = article['title'] ? article['title'] : article['id'];
+                const tags = article['tags'] ? article['tags'] : null
+
+                /** refresh editor by passing in the database article data */
+                editor.methods.render({ title: title_or_id, content: article['content'], tags: tags })
+
+            } else {
+
+                console.warn("Article not found for hash:", states.database.id);
+            }
         },
 
         /** export the current database as a json file */
@@ -524,7 +552,13 @@ const editor = {
             editor.elements.article.removeEventListener('input', editor.methods.write)
             editor.elements.article.addEventListener('input', editor.methods.write)
         },
+
+        /** remove input event listener */
+        unlisten: () => {
+            editor.elements.article.removeEventListener('input', editor.methods.write)
+        },
         
+        /** save html to the database state */
         write: () => {
 
             // static variables for verbosity
@@ -642,6 +676,42 @@ const editor = {
 /** global events */
 const global = {
 
+    /** global utils & methods */
+    methods: {
+
+        /** remove the hash on every visit */
+        removehash: () => {
+            
+            if (window.location.hash) {
+                history.replaceState(null, '', window.location.pathname);
+            }
+            
+        },
+        /** updates the window hash, id & article */
+        updatestates: (params = {}) => {
+
+            if (params['hash']){
+
+                // global state: store hash 
+                states.window.hash = params['hash'];
+    
+                // set current article id to the hash
+                states.database.id = states.window.hash.slice(1);
+    
+                /** query the article from the database to return it's data */
+                /** we do this to return the article data from the database */
+                states.database.article = editor.methods.query({ type: 'id', term: states.database.id })
+            }
+            if (params['json']){
+                states.database.json = JSON.parse(params['json']);
+            }
+            if (params['filename']){
+                states.database.file_name = params['filename'];
+            }
+
+        },
+
+    },
     /** setup non context-specific commands for the program */
     commands: {
         "search-files":
@@ -691,8 +761,34 @@ const global = {
             command: () => { editor.methods.export(); }
         }
     },
+    /** handle all major program events here */
+    events: {
+    
+        /** event when window hash change  */
+        windowhashchange: () => {
+            global.methods.updatestates({ hash: location.hash });
+            editor.methods.loadarticle();
+            sidebar.commands.link(states.database.id); 
+        },
+
+        editorexport: (event) => {},
+
+        /** what should happen when the database is loaded */
+        editorimport: (event) => {
+
+            global.methods.updatestates({json: event.target.result, filename: event.target.name})            
+            sidebar.commands.refresh();
+            sidebar.commands.open();
+            editor.methods.listen();
+            editor.methods.add_new_element_helper_button();
+
+        },
+
+    },
+    /** global listeners */
     listeners: {
 
+        /** intialize listeners here */
         init: () => {
 
             global.listeners.windowhashchange()
@@ -700,36 +796,12 @@ const global = {
 
         },
 
-        /** handle wndow hash change */
+        /* this will run each function inside global.events.windowhashchange */
         windowhashchange: () => {
 
-            // actual event
             window.addEventListener('hashchange', () => {
 
-                // global state: store hash 
-                states.window.hash = location.hash;
-
-                // set current article id to the hash
-                states.database.id = states.window.hash.slice(1);
-
-                /** query the article from the database to return it's data */
-                /** we do this to return the article data from the database */
-                const article = editor.methods.query({type: 'id', term: states.database.id})
-
-                sidebar.commands.link(states.database.id);
-
-                /** catch incorrect links or hash urls that don't point to existing articles */
-                if (article) 
-                {
-                    const title_or_id = article['title'] ? article['title'] : article['id'];
-                    
-                    /** refresh editor by passing in the database article data */
-                    editor.methods.render({ title: title_or_id, content: article['content'], tags: article['tags']})
-                
-                } else {
-
-                    console.warn("Article not found for hash:", states.database.id);
-                }
+                global.events.windowhashchange()
 
             });
         },

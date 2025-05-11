@@ -429,19 +429,31 @@ aside > nav
 
 
 
-/* .title
+.title,
+.content
+.properties
 {
     position: relative;
 }
-
-
-.title::before {
-    content: "Title";
-    position: absolute; 
-    top: -15px;
+.title::before,
+.content::before,
+.properties::before
+{
+    display: block;
     opacity: 0.3;
+    color: var(--color-text-ghost);
     font-size: 0.8rem;
     font-weight: 500;
     margin: 0;
     padding: 0;
-} */
+}
+
+.title::before {
+    content: "Title";
+}
+.content::before {
+    content: "Content";
+}
+.properties::before {
+    content: "Properties";
+}
