@@ -3,7 +3,8 @@ import { create_element } from "./elements.js";
 
 /** initialise program here */
 function main() {
-    global.methods.removehash();
+
+    global.methods.resethash();
     global.listeners.init();
     editor.init();
     sidebar.init();
@@ -61,7 +62,7 @@ const prompt = {
 
 }
 
-/** modal class to handle custom modals with commands */
+/** modal class to handle modals with context-specific commands */
 const modal = {
     
     /** this is used for loading context-specific commands e.g. editor, elements, settings, text, etc. */
@@ -152,6 +153,7 @@ const modal = {
             })
         });
     },
+    /** handles all modal input events */
     listen: () => {
         // query the altready created commands
         const html_command_buttons = document.querySelectorAll('.command');
@@ -231,7 +233,7 @@ const modal = {
     }
 }
 
-/** component */
+/** sidebar component */
 const sidebar = {
 
     /** main function */
@@ -268,9 +270,8 @@ const sidebar = {
 
             anchor.scrollIntoView({ behavior: "smooth", block: "center" });
         },
-        refresh: () =>
-        { 
-            sidebar.elements.list.innerHTML = '';
+        /** generate a list of links from all database files */
+        list: () => {
             states.database.json.forEach((article) => {
                 const li = create_element({
                     tag: 'li',
@@ -280,16 +281,24 @@ const sidebar = {
                 const anchor = create_element({
                     tag: 'a',
                     getref: 1,
-                    attr: {href: '#' + article['id']},
+                    attr: { href: '#' + article['id'] },
                     text: article['id'].replace(/-|#/g, ' '),
                     insertin: li,
                 });
 
             })
         },
+        /** completely refresh the sidebar view */
+        refresh: () =>
+        { 
+            sidebar.elements.list.innerHTML = '';
+            sidebar.commands.list();
+        },
+        /** simple toggle on/off */
         toggle: () => {
             sidebar.elements.container.classList.toggle('is-hidden');
         },
+        /** force open the sidebar */
         open: () => {
             sidebar.elements.container.classList.remove('is-hidden');
         }
@@ -297,12 +306,14 @@ const sidebar = {
     }
 }
 
+/** file structs & templates */
 const file = {
     
     default: {
 
         "id": null,
         "title": null,
+        "date": new Date.now(),
         "content": "<p contenteditable=\"true\"></p>"
     
     }
@@ -764,7 +775,7 @@ const global = {
     methods: {
 
         /** remove the hash on every visit */
-        removehash: () => {
+        resethash: () => {
             
             if (window.location.hash) {
                 history.replaceState(null, '', window.location.pathname);

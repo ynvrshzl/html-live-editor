@@ -71,5 +71,10 @@ aside ul {
 }
 
 aside a:not(.active-link) {
-    opacity: 0.3;
+    opacity: 0.4;
 }
+/* 
+aside a.active-link
+{
+    background-color: var(--color-text-ghost)
+} */
