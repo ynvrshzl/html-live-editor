@@ -1,0 +1,42 @@
+input,
+label,
+button {
+    font-family: var(--font-family);
+}
+
+label,
+button {
+
+    cursor: pointer;
+    appearance: none;
+    border: none;
+    padding: 10px;
+    margin: 0px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    color: var(--color-text);
+    background: transparent;
+
+}
+
+
+
+label:hover,
+button:hover {
+    background: var(--color-background-alt);
+}
+
+button.command {
+    text-align: left;
+}
+
+/* stylize all text content inside a button */
+button>p {
+    margin: 0;
+    opacity: 0.3;
+    font-size: 0.75em;
+}
+button:focus {
+    background-color: var(--color-accent-ghost);
+    outline: 2px solid var(--color-accent-muted);
+}

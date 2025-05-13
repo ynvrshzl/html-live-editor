@@ -1,0 +1,17 @@
+table {
+    /* table-layout: fixed; */
+    /* width: 100%; */
+    border-spacing: 0px;
+}
+
+td:has(.tag) {
+
+    /* max-width: 200px;
+    overflow-x: auto; */
+    word-break: break-all;
+    white-space: nowrap;
+}
+
+td::-webkit-scrollbar {
+    height: 5px;
+}

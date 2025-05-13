@@ -1,0 +1,19 @@
+
+.tag
+{
+    background-color: color-mix(in srgb, var(--color-accent) 10%, transparent);
+    padding: 3px;
+    padding-inline: 10px;
+    border-radius: 25px;
+    text-transform: lowercase;
+    margin: 1px;
+    font-size: 0.8em;
+}
+.tag::after {
+    display: none;
+}
+
+.tag:hover {
+    text-decoration: none;
+    background-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}

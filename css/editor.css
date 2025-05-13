@@ -1,0 +1,55 @@
+/* container */
+section:has(article) 
+{
+    width: 100%;
+}
+/* actual reading content */
+article {
+    font-size: 0.75em;
+    padding: var(--article-padding);
+    width: var(--article-width);
+
+    margin-left: auto;
+    margin-right: auto;
+    max-height: 100%;
+    overflow-y: auto;
+}
+article *:hover {
+    outline: 2px solid var(--color-text-ghost);
+    /* outline-offset: 3px; */
+}
+
+[contenteditable]:focus {
+    /* outline: none; */
+    background-color: var(--color-accent-ghost);
+}
+
+.title,
+.content .properties {
+    margin: 0;
+    position: relative;
+}
+
+.title::before,
+.content::before,
+.properties::before {
+    display: block;
+    opacity: 0.3;
+    color: var(--color-text-ghost);
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin: 0;
+    padding: 0;
+}
+
+.title::before {
+    content: "Title";
+}
+
+.content::before {
+    content: "Content";
+}
+
+.properties::before {
+    content: "Properties";
+}

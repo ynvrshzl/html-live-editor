@@ -1,0 +1,78 @@
+/* stylize a pseudo backdrop */
+body:has(.modal)::before 
+{
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    
+}
+
+
+
+div.modal {
+    border-radius: 25px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+
+    /* align-items: baseline; */
+    width: var(--modal-width);
+    background: var(--color-background);
+    /* height: 200px; */
+    /* max-height: 200px; */
+    /* overflow-y: auto; */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.modal-results
+{
+    padding: 5px;
+    font-size: 0.8em;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+div.modal:has(table) table tr:nth-child(2n+1) {
+    background-color: color-mix(in srgb, var(--color-background-alt) 25%, transparent);
+}
+
+/* div modal with table */
+div.modal:has(table) {
+    --modal-width: 75%;
+    max-height: 400px;
+    overflow-y: unset;
+}
+
+div.modal:has(table) table {
+    display: block;
+    overflow-y: auto;
+}
+
+div.modal td,
+div.modal th {
+    font-size: 0.7em;
+    font-weight: normal;
+}
+
+div.modal th {
+    cursor: pointer;
+}
+
+div.modal thead {
+    text-align: left;
+    position: sticky;
+    top: 0;
+    background-color: var(--color-background);
+}
+
+div.modal:has(table) input[type='text'] {
+    margin-bottom: 25px;
+}

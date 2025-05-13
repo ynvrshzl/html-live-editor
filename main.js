@@ -689,7 +689,7 @@ const editor = {
                 const article = states.database.article;
                 
                 // set the new property & value
-                article.property = value;
+                Object(article)[property] = value;
 
                 // refersh properties
                 editor.methods.refresh.properties();
