@@ -7,7 +7,7 @@ function main() {
     global.listeners.init();
     editor.init();
     sidebar.init();
-    global.commands['open-global-modal'].command()
+    
 }
 
 /** store core program states */
@@ -46,6 +46,8 @@ const prompt = {
 
             // * if input is cancelled
             if (input === null) {
+                // * show user of incorrect alrt
+                alert("Invalid input! Please enter a valid file ID.");
                 throw new Error("User canceled input. Cannot proceed without an ID.");
             }
 
@@ -54,8 +56,6 @@ const prompt = {
                 return input.trim(); // Valid input returned
             }
 
-            // * show user of incorrect alrt
-            alert("Invalid input! Please enter a valid file ID.");
         }
     }
 
@@ -332,8 +332,108 @@ const editor = {
 
         /** simply removes the innerHTML of an element */
         refresh: {
+            
             properties: () => {
-                editor.elements.properties.innerHTML = '';
+
+                // delete any previous html
+                const table = editor.elements.properties
+                table.innerHTML = '';
+
+                
+                const article = states.database.article;
+                console.log(article)
+
+                // store properties
+                const properties = Object.entries(article);
+     
+                // parse properties into table rows
+                properties.forEach(([k, v]) => {
+
+
+                    const row = create_element({
+                        tag: 'tr',
+                        getref: 1,
+                        insertin: table
+                    });
+
+                    function parsekey() {
+                        create_element({
+                            tag: 'td',
+                            text: k,
+                            insertin: row
+                        });
+                    }
+
+                    function parseval() {
+                        create_element({
+                            tag: 'td',
+                            text: v,
+                            insertin: row
+                        });
+                    }
+
+                    // skip properties that are empty
+                    if (v === '' || v.length === 0 ){
+
+                        create_element({
+                            tag: 'td',
+                            text: k,
+                            insertin: row
+                        });
+
+                        create_element({
+                            tag: 'td',
+                            text: 'No value',
+                            insertin: row
+                        });
+
+                    } else {
+
+                        // handle rendering specific properteis here
+                        switch (k) {
+                            case 'id':
+                                break;
+
+                            case 'content':
+                                break;
+
+                            case 'tags':
+                                parsekey();
+
+                                // value
+                                v.forEach((tag) => {
+                                    const td = create_element({
+                                        tag: 'td',
+                                        getref: 1,
+                                        insertin: row
+                                    });
+                                    const a = create_element({
+                                        tag: 'a',
+                                        text: tag,
+                                        classes: 'tag',
+                                        attr: { href: '#' + tag },
+                                        insertin: td
+                                    })
+                                })
+                                break;
+
+                            // all other properties without types
+                            default:
+                                parsekey();
+                                parseval();
+                                break;
+
+                        }
+                    }
+                });
+
+                create_element({
+                    tag: 'button',
+                    text: '+ Add property',
+                    insertin: table,
+                    onclick: () => { editor.commands['add-property'].command(); }
+                })
+                
             },
             content: () => {
                 editor.elements.content.innerHTML = '';
@@ -406,31 +506,6 @@ const editor = {
 
             editor.methods.read(params)          
             editor.methods.refresh.properties();
-            
-            // handle tags
-            if (params['tags'] !== null && params['tags'].length > 0) 
-            {
-
-                // parse tags as clickable links
-                params['tags'].forEach((tag) => {
-    
-                    // create link
-                    create_element({
-                        tag: 'a',
-                        text: tag,
-                        classes: 'tag',
-                        attr: {href: '#' + tag},
-                        insertin: editor.elements.properties
-                    });
-    
-                })
-
-            } else {
-
-                editor.elements.properties.innerHTML = 'No properties'
-            
-            }
-
 
         },
 
@@ -607,14 +682,17 @@ const editor = {
             command: () => { 
 
                 // static variables for property & value
-                const property = prompt.input({ placeholder: "Enter property name" });
-                const value = prompt.input({ placeholder: "Enter property value" });
+                const property = prompt.input({ placeholder: "Name" });
+                const value = prompt.input({ placeholder: "Value" });
                 
                 // get the article from the database
-                const article = editor.methods.query({ type: 'id', term: states.database.id });
+                const article = states.database.article;
                 
                 // set the new property & value
-                article['property'] = value;
+                article.property = value;
+
+                // refersh properties
+                editor.methods.refresh.properties();
                  
              }
         },
@@ -669,6 +747,12 @@ const editor = {
             description: "Add a image",
             command: () => {  }
         },
+        "editor:extract-selection":
+        {
+            title: "Extract selection",
+            description: "Extract selection to a file",
+            command: () => {  }
+        }
 
     }
 }
@@ -713,12 +797,13 @@ const global = {
 
     },
     /** setup non context-specific commands for the program */
+    /** global.commands['open-global-modal'].command() */
     commands: {
         "search-files":
         {
             title: "Search files",
             description: "Search between files",
-            command: () => { }
+            command: () => {  }
         },
         "create-new-file": {
             title: "Create new file",
@@ -776,7 +861,7 @@ const global = {
         /** what should happen when the database is loaded */
         editorimport: (event) => {
 
-            global.methods.updatestates({json: event.target.result, filename: event.target.name})            
+            global.methods.updatestates({json: event.target.result, filename: event.target.name })            
             sidebar.commands.refresh();
             sidebar.commands.open();
             editor.methods.listen();

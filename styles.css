@@ -1,7 +1,6 @@
 :root {
     --article-padding: 75px;
     --modal-width: 650px;
-    --color-accent: rgb(255, 86, 128);
     --color-text: white;
     /* --article-width: 400px; */
 }
@@ -82,7 +81,7 @@ table.properties {
 }
 table.properties
 {
-    width: fit-content;
+    /* width: fit-content; */
 }
 table.properties > tbody > tr > td:first-child
 {
@@ -147,7 +146,7 @@ div.modal {
 
 table {
     /* table-layout: fixed; */
-    width: 100%;
+    /* width: 100%; */
     border-spacing: 0px;
 }
 td:has(.tag) {
@@ -457,3 +456,4 @@ aside > nav
 .properties::before {
     content: "Properties";
 }
+
