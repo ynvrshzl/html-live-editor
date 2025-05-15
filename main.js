@@ -8,6 +8,7 @@ function main() {
     global.listeners.init();
     editor.init();
     sidebar.init();
+    mouse.selection.init();
     
 }
 
@@ -26,9 +27,57 @@ const states = {
     },
     /** store the window hash */
     window: {
-        hash: null
+        hash: null,
     },
 };
+
+/** custom mouse behavior */
+const mouse = {
+
+    selection: {
+            container: undefined,
+            startx: undefined,
+            starty: undefined,
+            create: (event) => {
+                mouse.selection.container = create_element({ tag: 'div', attr: { id: "selection-box" }, addtobody: true, getref: 1,  });
+                mouse.selection.startx = event.clientX;
+                mouse.selection.starty = event.clientY;
+                mouse.selection.container.style.left = `${mouse.selection.startx}px`;
+                mouse.selection.container.style.top = `${mouse.selection.starty}px`;
+            },
+            mousemove: (event) => {
+
+                
+
+                const width = event.clientX - mouse.selection.startx;
+                const height = event.clientY - mouse.selection.starty;
+
+                mouse.selection.container.style.width = `${Math.abs(width)}px`;
+                mouse.selection.container.style.height = `${Math.abs(height)}px`;
+
+                if (width < 0) mouse.selection.container.style.left = `${event.clientX}px`;
+                if (height < 0) mouse.selection.container.style.top = `${event.clientY}px`;       
+            },
+
+            mouseup: (event) => {
+                document.removeEventListener('mousemove', mouse.selection.mousemove);
+                document.removeEventListener('mouseup', mouse.selection.mouseup);
+                mouse.selection.container.remove();
+            },
+            mousedown: () => {
+                document.addEventListener('mousedown', (event) => {
+                    // event.preventDefault();
+                    mouse.selection.create(event);
+                    document.addEventListener('mousemove', mouse.selection.mousemove);
+                    document.addEventListener('mouseup', mouse.selection.mouseup);
+                })
+            },
+            init: () => {
+                mouse.selection.mousedown();
+            }
+    }
+    
+}
 
 /** create custom user prompts */
 const prompt = {
@@ -313,7 +362,7 @@ const file = {
 
         "id": null,
         "title": null,
-        "date": new Date.now(),
+        "date": new Date().now,
         "content": "<p contenteditable=\"true\"></p>"
     
     }
@@ -547,11 +596,13 @@ const editor = {
         /** call this function to programatically click a hidden file input & import a file  */
         import: () => {
 
+            /** main */
             const input = create_hidden_input();
             refresh_event_listeners();
             interact();
 
 
+            /** functions */
             function refresh_event_listeners() {
                 input.removeEventListener('change', handle_input_file_change);
                 input.addEventListener('change', handle_input_file_change);
@@ -635,8 +686,8 @@ const editor = {
         /** handles input listening inside the editor */
         listen: () => {
             // refresh any pre-existing listeners
-            editor.elements.article.removeEventListener('input', editor.methods.write)
-            editor.elements.article.addEventListener('input', editor.methods.write)
+            editor.methods.unlisten();
+            editor.elements.article.addEventListener('input', editor.methods.write);
         },
 
         /** remove input event listener */
@@ -682,6 +733,7 @@ const editor = {
         }
 
     },
+
     /** core commands */
     commands: {
 
@@ -707,7 +759,8 @@ const editor = {
                  
              }
         },
-        "editor:add-paragraph":
+
+        "add-paragraph":
         {
             title: "Paragraph",
             description: "Add a paragarph",
@@ -785,16 +838,15 @@ const global = {
         /** updates the window hash, id & article */
         updatestates: (params = {}) => {
 
-            if (params['hash']){
+            if (params['file']){
 
                 // global state: store hash 
-                states.window.hash = params['hash'];
+                states.window.hash = params['file'];
     
                 // set current article id to the hash
                 states.database.id = states.window.hash.slice(1);
     
                 /** query the article from the database to return it's data */
-                /** we do this to return the article data from the database */
                 states.database.article = editor.methods.query({ type: 'id', term: states.database.id })
             }
             if (params['json']){
@@ -805,7 +857,6 @@ const global = {
             }
 
         },
-
     },
     /** setup non context-specific commands for the program */
     /** global.commands['open-global-modal'].command() */
@@ -862,9 +913,11 @@ const global = {
     
         /** event when window hash change  */
         windowhashchange: () => {
-            global.methods.updatestates({ hash: location.hash });
+
+            global.methods.updatestates({ file: window.location.hash });
             editor.methods.loadarticle();
             sidebar.commands.link(states.database.id); 
+       
         },
 
         editorexport: (event) => {},
@@ -920,6 +973,7 @@ const global = {
                             event.preventDefault();
                             global.commands['export-database'].command();
                             break;
+                            
                         case 'o':
                             event.preventDefault();
                             global.commands['open-file'].command();
@@ -929,6 +983,7 @@ const global = {
                             event.preventDefault();
                             global.commands['open-global-modal'].command();
                             break;
+
                         case '[':
                             event.preventDefault();
                             sidebar.commands.toggle();

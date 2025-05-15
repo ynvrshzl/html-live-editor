@@ -1,0 +1,5 @@
+#selection-box
+{
+    position: absolute;
+    background-color: var(--color-accent-ghost);
+}
